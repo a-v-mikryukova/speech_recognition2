@@ -1,5 +1,5 @@
 ```path
-.
+
 asr-project/
 ├── configs/
 │   └── config.yaml
