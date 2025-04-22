@@ -1,3 +1,5 @@
+```path
+.
 asr-project/
 ├── configs/
 │   └── config.yaml
@@ -19,3 +21,4 @@ asr-project/
 │   └── test.py
 ├── requirements.txt
 └── README.md
+```
