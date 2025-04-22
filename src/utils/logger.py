@@ -6,8 +6,7 @@ class WanDBLogger:
         self.config = config
         self.run = wandb.init(
             project="asr",
-            config=config,
-            magic=True
+            config=config
         )
 
     def log_metrics(self, metrics, step):
