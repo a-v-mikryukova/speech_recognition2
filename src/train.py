@@ -2,12 +2,12 @@ import torch
 import yaml
 import argparse
 from torch.utils.data import DataLoader
-from data import LibriSpeechDataset
-from data import TextTransform, get_featurizer, collate_fn
-from models import SpeechRecognitionModel
-from models import greedy_decode
-from utils import cer, wer
-from utils import WanDBLogger
+from src.data import LibriSpeechDataset
+from src.data import TextTransform, get_featurizer, collate_fn
+from src.models import SpeechRecognitionModel
+from src.models import greedy_decode
+from src.utils import cer, wer
+from src.utils import WanDBLogger
 import wandb
 import torch.nn.functional as F
 
