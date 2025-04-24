@@ -23,10 +23,7 @@ class TextTransform:
         """ Use a character map and convert text to an integer sequence """
         int_sequence = []
         for c in text:
-            if c == ' ':
-                ch = self.char_map['']
-            else:
-                ch = self.char_map[c]
+            ch = self.char_map[c]
             int_sequence.append(ch)
         return int_sequence
 
@@ -48,7 +45,7 @@ def get_featurizer(sample_rate, n_mels, train=True):
     return torchaudio.transforms.MelSpectrogram()
 
 
-def collate_fn(batch, text_transform, sample_rate=16000, n_mels=128, feature_type="train"):
+def collate_fn(batch, text_transform, feature_type="train", sample_rate=16000, n_mels=128):
     spectrograms = []
     labels = []
     input_lengths = []
