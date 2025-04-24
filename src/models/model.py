@@ -98,4 +98,4 @@ class SpeechRecognitionModel(nn.Module):
 
     def log_melspectrogram(self, x, logger, step):
         mel = x.cpu().numpy()[0][0]
-        logger.log({"melspectrogram": wandb.Image(mel)}, step=step)
+        logger.log_metrics({"melspectrogram": wandb.Image(mel)}, step=step)
