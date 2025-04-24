@@ -27,7 +27,7 @@ def train(config_path):
         train_dataset,
         batch_size=config['train']['batch_size'],
         collate_fn=lambda x: collate_fn(x, text_transform, "train"),
-        num_workers=4
+        num_workers=config['train']['num_workers']
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
