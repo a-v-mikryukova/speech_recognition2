@@ -12,7 +12,7 @@ model:
   n_rnn_layers: 5
   rnn_dim: 512
   n_class: 29
-  n_feats: 2
+  n_feats: 128
   stride: 2
   dropout: 0.1
 
@@ -21,3 +21,4 @@ train:
   epochs: 100
   learning_rate: 0.001
   save_dir: "./checkpoints"
+  num_workers: 4
