@@ -45,8 +45,9 @@ def train(config_path):
     for epoch in range(config['train']['epochs']):
         model.train()
         for batch_idx, (data, targets, input_len, target_len) in enumerate(train_loader):
+            targets = targets.to(device)
             optimizer.zero_grad()
-            outputs = model(data.to(device))
+            outputs = model(data.to(device)).permute(1, 0, 2)
             loss = criterion(outputs, targets, input_len, target_len)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
