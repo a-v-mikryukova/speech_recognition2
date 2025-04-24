@@ -4,12 +4,12 @@ import argparse
 import wandb
 from tqdm import tqdm
 from torch.utils.data import DataLoader, ConcatDataset
-from src.data import LibriSpeechDataset
-from src.data import TextTransform, collate_fn
-from src.models import SpeechRecognitionModel
-from src.models import greedy_decode
-from src.utils import cer, wer
-from src.utils import WanDBLogger
+from data import LibriSpeechDataset
+from data import TextTransform, collate_fn
+from models import SpeechRecognitionModel
+from models import greedy_decode
+from utils import cer, wer
+from utils import WanDBLogger
 
 
 def test(config_path, checkpoint):
