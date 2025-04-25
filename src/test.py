@@ -10,13 +10,13 @@ from src.models import SpeechRecognitionModel
 from src.models import greedy_decode
 from src.utils import cer, wer
 from src.utils import WanDBLogger
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
-
-def test(config_path, checkpoint):
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-
-    logger = WanDBLogger(config)
+@hydra.main(config_path="../configs", config_name="config")
+def test(config):
+    checkpoint = config['test']['checkpoint']
+    logger = WanDBLogger(dict(config))
     logger.watch_model = False
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,7 +43,7 @@ def test(config_path, checkpoint):
         test_dataset,
         batch_size=config['train']['batch_size'],
         collate_fn=lambda x: collate_fn(x, text_transform, "test"),
-        num_workers=4,
+        num_workers=config['train']['num_workers'],
         shuffle=False
     )
 
@@ -109,9 +109,8 @@ def test(config_path, checkpoint):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="ASR Model Testing")
-    parser.add_argument("--config", default="configs/config.yaml")
-    parser.add_argument("--checkpoint", required=True)
-    args = parser.parse_args()
-
-    test(args.config, args.checkpoint)
+    # parser = argparse.ArgumentParser(description="ASR Model Testing")
+    # parser.add_argument("--config", default="configs/config.yaml")
+    # parser.add_argument("--checkpoint", required=True)
+    # args = parser.parse_args()
+    test()
