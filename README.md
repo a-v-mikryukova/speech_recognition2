@@ -20,5 +20,6 @@ asr-project/
 │   ├── train.py
 │   └── test.py
 ├── requirements.txt
+├── pyproject.toml
 └── README.md
 ```
