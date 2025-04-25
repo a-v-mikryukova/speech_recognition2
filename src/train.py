@@ -10,13 +10,12 @@ from src.utils import cer, wer
 from src.utils import WanDBLogger
 import wandb
 import torch.nn.functional as F
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
-
-def train(config_path):
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-
-    logger = WanDBLogger(config)
+@hydra.main(config_path="../configs", config_name="config")
+def train(config):
+    logger = WanDBLogger(dict(config))
     text_transform = TextTransform()
 
     train_datasets = [LibriSpeechDataset(config['data']['data_dir'], url)
@@ -139,7 +138,7 @@ def validate(model, device, config, criterion, logger, epoch):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="configs/config.yaml")
-    args = parser.parse_args()
-    train(args.config)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--config", default="configs/config.yaml")
+    # args = parser.parse_args()
+    train()
