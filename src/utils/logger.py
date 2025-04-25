@@ -6,7 +6,7 @@ class WanDBLogger:
         self.config = config
         self.run = wandb.init(
             project="asr",
-            config=config
+            config=config,
         )
 
     def log_metrics(self, metrics, step):
@@ -16,6 +16,6 @@ class WanDBLogger:
         wandb.watch(model, log="all", log_freq=100)
 
     def log_checkpoint(self, path):
-        artifact = wandb.Artifact('model', type='model')
+        artifact = wandb.Artifact("model", type="model")
         artifact.add_file(path)
         self.run.log_artifact(artifact)

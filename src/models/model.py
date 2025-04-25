@@ -1,6 +1,6 @@
-import torch.nn as nn
 import torch.nn.functional as F
 import wandb
+from torch import nn
 
 
 class CNNLayerNorm(nn.Module):
@@ -80,7 +80,7 @@ class SpeechRecognitionModel(nn.Module):
             nn.Linear(rnn_dim*2, rnn_dim),  # birnn returns rnn_dim*2
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(rnn_dim, n_class)
+            nn.Linear(rnn_dim, n_class),
         )
 
     def forward(self, x):

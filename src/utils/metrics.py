@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def _levenshtein_distance(ref, hyp):
     m = len(ref)
     n = len(hyp)
@@ -20,7 +21,7 @@ def _levenshtein_distance(ref, hyp):
     distance = np.zeros((2, n + 1), dtype=np.int32)
 
     # initialize distance matrix
-    for j in range(0,n + 1):
+    for j in range(n + 1):
         distance[0][j] = j
 
     # calculate levenshtein distance
@@ -39,7 +40,7 @@ def _levenshtein_distance(ref, hyp):
 
     return distance[m % 2][n]
 
-def word_errors(reference, hypothesis, ignore_case=False, delimiter=' '):
+def word_errors(reference, hypothesis, ignore_case=False, delimiter=" "):
     if ignore_case:
         reference = reference.lower()
         hypothesis = hypothesis.lower()
@@ -55,12 +56,12 @@ def char_errors(reference, hypothesis, ignore_case=False, remove_space=False):
         reference = reference.lower()
         hypothesis = hypothesis.lower()
 
-    join_char = ' '
+    join_char = " "
     if remove_space:
-        join_char = ''
+        join_char = ""
 
-    reference = join_char.join(filter(None, reference.split(' ')))
-    hypothesis = join_char.join(filter(None, hypothesis.split(' ')))
+    reference = join_char.join(filter(None, reference.split(" ")))
+    hypothesis = join_char.join(filter(None, hypothesis.split(" ")))
 
     edit_distance = _levenshtein_distance(reference, hypothesis)
     return float(edit_distance), len(reference)
@@ -76,7 +77,7 @@ def cer(reference, hypothesis, ignore_case=False, remove_space=False):
     return cer
 
 
-def wer(reference, hypothesis, ignore_case=False, delimiter=' '):
+def wer(reference, hypothesis, ignore_case=False, delimiter=" "):
     edit_distance, ref_len = word_errors(reference, hypothesis, ignore_case,
                                          delimiter)
 

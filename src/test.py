@@ -1,47 +1,46 @@
+import hydra
 import torch
 import wandb
+from torch.utils.data import ConcatDataset, DataLoader
 from tqdm import tqdm
-from torch.utils.data import DataLoader, ConcatDataset
-from src.data import LibriSpeechDataset
-from src.data import TextTransform, collate_fn
-from src.models import SpeechRecognitionModel
-from src.models import greedy_decode
-from src.utils import cer, wer
-from src.utils import WanDBLogger
-import hydra
+
+from src.data import LibriSpeechDataset, TextTransform, collate_fn
+from src.models import SpeechRecognitionModel, greedy_decode
+from src.utils import WanDBLogger, cer, wer
+
 
 @hydra.main(config_path="../configs", config_name="config")
 def test(config):
-    checkpoint = config['test']['checkpoint']
+    checkpoint = config["test"]["checkpoint"]
     logger = WanDBLogger(dict(config))
     logger.watch_model = False
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = SpeechRecognitionModel(**config['model']).to(device)
+    model = SpeechRecognitionModel(**config["model"]).to(device)
     try:
         model.load_state_dict(torch.load(checkpoint, map_location=device))
         print(f"Loaded checkpoint from {checkpoint}")
     except Exception as e:
-        raise RuntimeError(f"Error loading checkpoint: {str(e)}")
+        raise RuntimeError(f"Error loading checkpoint: {e!s}")
 
     text_transform = TextTransform()
     test_datasets = []
-    for url in config['data']['urls']['test']:
+    for url in config["data"]["urls"]["test"]:
         dataset = LibriSpeechDataset(
-            root=config['data']['data_dir'],
+            root=config["data"]["data_dir"],
             url=url,
-            download=False
+            download=False,
         )
         test_datasets.append(dataset)
 
     test_dataset = ConcatDataset(test_datasets)
     test_loader = DataLoader(
         test_dataset,
-        batch_size=config['train']['batch_size'],
+        batch_size=config["train"]["batch_size"],
         collate_fn=lambda x: collate_fn(x, text_transform, "test"),
-        num_workers=config['train']['num_workers'],
-        shuffle=False
+        num_workers=config["train"]["num_workers"],
+        shuffle=False,
     )
 
     total_cer = 0.0
@@ -54,7 +53,7 @@ def test(config):
         for batch_idx, (data, labels, input_lengths, label_lengths) in tqdm(
                 enumerate(test_loader),
                 total=len(test_loader),
-                desc="Testing"
+                desc="Testing",
         ):
             data = data.to(device)
             labels = labels.to(device)
@@ -65,7 +64,7 @@ def test(config):
                 outputs.cpu(),
                 labels.cpu(),
                 label_lengths,
-                text_transform
+                text_transform,
             )
 
             batch_cer = sum(cer(t, p) for t, p in zip(decoded_targets, decoded_preds))
@@ -86,13 +85,13 @@ def test(config):
 
     results_table = wandb.Table(
         columns=["Target", "Prediction", "CER", "WER"],
-        data=examples
+        data=examples,
     )
 
     logger.log_metrics({
         "test/cer": avg_cer,
         "test/wer": avg_wer,
-        "test/examples": results_table
+        "test/examples": results_table,
     })
 
     print("\nTest Results:")

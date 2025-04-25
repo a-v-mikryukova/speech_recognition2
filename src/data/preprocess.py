@@ -1,25 +1,26 @@
 import torch
-import torch.nn as nn
 import torchaudio
+from torch import nn
 
 
 class TextTransform:
     """Maps characters to integers and vice versa"""
+
     def __init__(self):
         self.char_map = {}
         self.index_map = {}
         for ch in "' abcdefghijklmnopqrstuvwxyz":
-            index = ord(ch) - ord('a') + 2
+            index = ord(ch) - ord("a") + 2
             if ch == "'":
                 index = 0
             if ch == " ":
                 index = 1
             self.char_map[ch] = int(index)
             self.index_map[int(index)] = ch
-        self.index_map[1] = ' '
+        self.index_map[1] = " "
 
     def text_to_int(self, text):
-        """ Use a character map and convert text to an integer sequence """
+        """Use a character map and convert text to an integer sequence"""
         int_sequence = []
         for c in text:
             ch = self.char_map[c]
@@ -27,11 +28,11 @@ class TextTransform:
         return int_sequence
 
     def int_to_text(self, labels):
-        """ Use a character map and convert integer labels to an text sequence """
+        """Use a character map and convert integer labels to an text sequence"""
         string = []
         for i in labels:
             string.append(self.index_map[i])
-        return ''.join(string).replace('', ' ')
+        return "".join(string).replace("", " ")
 
 
 def get_featurizer(sample_rate, n_mels, train=True):
@@ -39,7 +40,7 @@ def get_featurizer(sample_rate, n_mels, train=True):
         return nn.Sequential(
             torchaudio.transforms.MelSpectrogram(sample_rate, n_mels=n_mels),
             torchaudio.transforms.FrequencyMasking(30),
-            torchaudio.transforms.TimeMasking(100)
+            torchaudio.transforms.TimeMasking(100),
         )
     return torchaudio.transforms.MelSpectrogram()
 
@@ -64,17 +65,17 @@ def collate_fn(batch, text_transform, feature_type="train", sample_rate=16000, n
 
     spectrograms = nn.utils.rnn.pad_sequence(
         spectrograms,
-        batch_first=True
+        batch_first=True,
     ).unsqueeze(1).transpose(2, 3)
 
     labels = nn.utils.rnn.pad_sequence(
         labels,
-        batch_first=True
+        batch_first=True,
     )
 
     return (
         spectrograms,
         labels,
         torch.tensor(input_lengths, dtype=torch.long),
-        torch.tensor(label_lengths, dtype=torch.long)
+        torch.tensor(label_lengths, dtype=torch.long),
     )

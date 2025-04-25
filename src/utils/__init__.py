@@ -1,9 +1,9 @@
-from .metrics import cer, wer, avg_wer
 from .logger import WanDBLogger
+from .metrics import avg_wer, cer, wer
 
 __all__ = [
-    'cer',
-    'wer',
-    'avg_wer',
-    'WanDBLogger'
+    "WanDBLogger",
+    "avg_wer",
+    "cer",
+    "wer",
 ]

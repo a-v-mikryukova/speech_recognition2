@@ -1,6 +1,7 @@
 import torch
 import wandb
 
+
 def greedy_decode(output, labels, label_lengths, text_transform, blank_label=28, collapse_repeated=True):
     arg_maxes = torch.argmax(output, dim=2)
     decodes = []
@@ -40,7 +41,7 @@ def greedy_decode(output, labels, label_lengths, text_transform, blank_label=28,
             wandb.log({
                 "predictions": table,
                 "target_text": target_text,
-                "predicted_text": decoded_text
+                "predicted_text": decoded_text,
             })
         except Exception as e:
             print(f"Failed to log predictions: {e}")
