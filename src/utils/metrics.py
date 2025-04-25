@@ -40,7 +40,7 @@ def _levenshtein_distance(ref, hyp):
     return distance[m % 2][n]
 
 def word_errors(reference, hypothesis, ignore_case=False, delimiter=' '):
-    if ignore_case == True:
+    if ignore_case:
         reference = reference.lower()
         hypothesis = hypothesis.lower()
 
@@ -51,12 +51,12 @@ def word_errors(reference, hypothesis, ignore_case=False, delimiter=' '):
     return float(edit_distance), len(ref_words)
 
 def char_errors(reference, hypothesis, ignore_case=False, remove_space=False):
-    if ignore_case == True:
+    if ignore_case:
         reference = reference.lower()
         hypothesis = hypothesis.lower()
 
     join_char = ' '
-    if remove_space == True:
+    if remove_space:
         join_char = ''
 
     reference = join_char.join(filter(None, reference.split(' ')))

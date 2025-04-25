@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torchaudio
 
-from .dataset import LibriSpeechDataset
 
 class TextTransform:
     """Maps characters to integers and vice versa"""

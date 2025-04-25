@@ -1,6 +1,4 @@
 import torch
-import yaml
-import argparse
 import wandb
 from tqdm import tqdm
 from torch.utils.data import DataLoader, ConcatDataset
@@ -11,7 +9,6 @@ from src.models import greedy_decode
 from src.utils import cer, wer
 from src.utils import WanDBLogger
 import hydra
-from omegaconf import DictConfig, OmegaConf
 
 @hydra.main(config_path="../configs", config_name="config")
 def test(config):
