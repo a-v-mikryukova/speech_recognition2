@@ -10,7 +10,7 @@ from src.utils import WanDBLogger, cer, wer
 
 
 @hydra.main(config_path="../configs", config_name="config")
-def train(config):
+def train(config) -> None:
     logger = WanDBLogger(dict(config))
     text_transform = TextTransform()
 
@@ -127,7 +127,6 @@ def validate(model, device, config, criterion, logger, epoch):
         "val/wer": avg_wer,
     }, step=epoch)
 
-    print(f"\nValidation set: Average loss: {avg_loss:.4f}, Average CER: {avg_cer:.4f}, Average WER: {avg_wer:.4f}\n")
 
     model.train()
     return avg_wer

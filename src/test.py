@@ -10,7 +10,7 @@ from src.utils import WanDBLogger, cer, wer
 
 
 @hydra.main(config_path="../configs", config_name="config")
-def test(config):
+def test(config) -> None:
     checkpoint = config["test"]["checkpoint"]
     logger = WanDBLogger(dict(config))
     logger.watch_model = False
@@ -20,9 +20,9 @@ def test(config):
     model = SpeechRecognitionModel(**config["model"]).to(device)
     try:
         model.load_state_dict(torch.load(checkpoint, map_location=device))
-        print(f"Loaded checkpoint from {checkpoint}")
     except Exception as e:
-        raise RuntimeError(f"Error loading checkpoint: {e!s}")
+        msg = f"Error loading checkpoint: {e!s}"
+        raise RuntimeError(msg)
 
     text_transform = TextTransform()
     test_datasets = []
@@ -50,7 +50,7 @@ def test(config):
 
     model.eval()
     with torch.no_grad():
-        for batch_idx, (data, labels, input_lengths, label_lengths) in tqdm(
+        for batch_idx, (data, labels, _input_lengths, label_lengths) in tqdm(
                 enumerate(test_loader),
                 total=len(test_loader),
                 desc="Testing",
@@ -94,14 +94,8 @@ def test(config):
         "test/examples": results_table,
     })
 
-    print("\nTest Results:")
-    print(f"Average CER: {avg_cer:.4f}")
-    print(f"Average WER: {avg_wer:.4f}")
-    print("\nExample predictions:")
-    for target, pred, c, w in examples:
-        print(f"Target: {target}")
-        print(f"Pred:   {pred}")
-        print(f"CER: {c:.2f} | WER: {w:.2f}\n")
+    for _target, _pred, _c, _w in examples:
+        pass
 
 
 if __name__ == "__main__":

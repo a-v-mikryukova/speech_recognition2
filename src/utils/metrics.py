@@ -71,10 +71,10 @@ def cer(reference, hypothesis, ignore_case=False, remove_space=False):
                                          remove_space)
 
     if ref_len == 0:
-        raise ValueError("Length of reference should be greater than 0.")
+        msg = "Length of reference should be greater than 0."
+        raise ValueError(msg)
 
-    cer = float(edit_distance) / ref_len
-    return cer
+    return float(edit_distance) / ref_len
 
 
 def wer(reference, hypothesis, ignore_case=False, delimiter=" "):
@@ -82,10 +82,10 @@ def wer(reference, hypothesis, ignore_case=False, delimiter=" "):
                                          delimiter)
 
     if ref_len == 0:
-        raise ValueError("Reference's word number should be greater than 0.")
+        msg = "Reference's word number should be greater than 0."
+        raise ValueError(msg)
 
-    wer = float(edit_distance) / ref_len
-    return wer
+    return float(edit_distance) / ref_len
 
 
 def avg_wer(wer_scores, combined_ref_len):
