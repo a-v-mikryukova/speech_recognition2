@@ -9,8 +9,8 @@ class WanDBLogger:
             config=config,
         )
 
-    def log_metrics(self, metrics, step) -> None:
-        wandb.log(metrics, step=step)
+    def log_metrics(self, metrics) -> None:
+        wandb.log(metrics)
 
     def watch_model(self, model) -> None:
         wandb.watch(model, log="all", log_freq=100)
