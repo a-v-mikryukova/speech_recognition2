@@ -82,7 +82,7 @@ def validate(model, device, config, criterion, logger, epoch):
     val_dataset = torch.utils.data.ConcatDataset(val_datasets)
 
     val_loader = DataLoader(
-        datset=val_dataset,
+        datаset=val_dataset,
         batch_size=config["train"]["batch_size"],
         shuffle=False,
         collate_fn=lambda x: collate_fn(x, text_transform, "valid")
