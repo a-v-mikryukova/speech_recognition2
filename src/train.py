@@ -8,6 +8,12 @@ from src.data import LibriSpeechDataset, TextTransform, collate_fn
 from src.models import SpeechRecognitionModel, greedy_decode
 from src.utils import WanDBLogger, cer, wer
 
+SEED = 123
+torch.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+np.random.seed(SEED)
+
 
 @hydra.main(config_path="../configs", config_name="config")
 def train(config) -> None:
@@ -19,10 +25,9 @@ def train(config) -> None:
     train_dataset = torch.utils.data.ConcatDataset(train_datasets)
 
     train_loader = DataLoader(
-        train_dataset,
+        dataset=train_dataset,
         batch_size=config["train"]["batch_size"],
-        collate_fn=lambda x: collate_fn(x, text_transform, "train"),
-        num_workers=config["train"]["num_workers"],
+        collate_fn=lambda x: collate_fn(x, text_transform, "train")
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -31,31 +36,33 @@ def train(config) -> None:
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=config["train"]["learning_rate"],
-        steps_per_epoch=len(train_loader),
+        steps_per_epoch=int(len(train_loader)),
         epochs=config["train"]["epochs"],
-    )
+        anneal_strategy='linear')
     criterion = torch.nn.CTCLoss(blank=28).to(device)
 
     best_wer = float("inf")
     for epoch in range(config["train"]["epochs"]):
         model.train()
-        for batch_idx, (data, targets, input_len, target_len) in enumerate(train_loader):
-            targets = targets.to(device)
+        data_len = len(train_loader.dataset)
+        for batch_idx, _data in enumerate(train_loader):
+            spectrograms, labels, input_lengths, label_lengths = _data
+            spectrograms, labels = spectrograms.to(device), labels.to(device)
+            
             optimizer.zero_grad()
-            outputs = model(data.to(device)).permute(1, 0, 2)
-            loss = criterion(outputs, targets, input_len, target_len)
+
+            output = model(spectrograms)
+            output = F.log_softmax(output, dim=2)
+            output = output.transpose(0, 1)
+            
+            loss = criterion(output, labels, input_lengths, label_lengths)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            logger.log_metrics({
+                    "train/loss": loss,
+                    "train/lr": scheduler.get_last_lr()[0],
+                })
             optimizer.step()
             scheduler.step()
-
-            if batch_idx % 100 == 0:
-                model.log_melspectrogram(data, logger, epoch * len(train_loader) + batch_idx)
-                logger.log_metrics({
-                    "train/loss": loss.item(),
-                    "train/lr": scheduler.get_last_lr()[0],
-                }, step=epoch * len(train_loader) + batch_idx)
-
         val_wer = validate(model, device, config, criterion, logger, epoch)
         if val_wer < best_wer:
             best_wer = val_wer
@@ -74,61 +81,39 @@ def validate(model, device, config, criterion, logger, epoch):
     val_dataset = torch.utils.data.ConcatDataset(val_datasets)
 
     val_loader = DataLoader(
-        val_dataset,
+        datset=val_dataset,
         batch_size=config["train"]["batch_size"],
-        collate_fn=lambda x: collate_fn(x, text_transform, "valid"),
-        num_workers=4,
         shuffle=False,
+        collate_fn=lambda x: collate_fn(x, text_transform, "valid")
     )
 
     with torch.no_grad():
-        for batch_idx, (data, labels, input_lengths, label_lengths) in enumerate(val_loader):
-            data = data.to(device)
-            labels = labels.to(device)
-
+        for i, _data in enumerate(val_loader):
+            spectrograms, labels, input_lengths, label_lengths = _data
+            spectrograms, labels = spectrograms.to(device), labels.to(device)
+            output = model(spectrograms)
+            output = F.log_softmax(output, dim=2)
+            output = output.transpose(0, 1)
             outputs = model(data)
-            loss = criterion(
-                F.log_softmax(outputs, dim=2).transpose(0, 1),
-                labels,
-                input_lengths,
-                label_lengths,
-            )
+            loss = criterion(output, labels, input_lengths, label_lengths)
             val_loss += loss.item() / len(val_loader)
 
-            decoded_preds, decoded_targets = greedy_decode(
-                outputs.cpu(),
-                labels.cpu(),
-                label_lengths,
-                text_transform,
-            )
+            decoded_preds, decoded_targets = greedy_decode(output.transpose(0, 1), labels, label_lengths)
 
-            for pred, target in zip(decoded_preds, decoded_targets):
-                val_cer.append(cer(target, pred))
-                val_wer.append(wer(target, pred))
-
-            if batch_idx == 0:
-                logger.log_metrics({
-                    "val/examples": wandb.Table(
-                        columns=["Target", "Prediction", "CER", "WER"],
-                        data=[
-                            [t, p, cer(t, p), wer(t, p)]
-                            for t, p in list(zip(decoded_targets, decoded_preds))[:5]
-                        ],
-                    ),
-                }, step=epoch)
+            for j in range(len(decoded_preds)):
+                val_cer.append(cer(decoded_targets[j], decoded_preds[j]))
+                val_wer.append(wer(decoded_targets[j], decoded_preds[j]))
 
     avg_cer = sum(val_cer) / len(val_cer)
     avg_wer = sum(val_wer) / len(val_wer)
     avg_loss = val_loss
 
     logger.log_metrics({
-        "val/loss": avg_loss,
+        "val/loss": val_loss,
         "val/cer": avg_cer,
         "val/wer": avg_wer,
-    }, step=epoch)
+    })
 
-
-    model.train()
     return avg_wer
 
 
