@@ -95,7 +95,6 @@ def validate(model, device, config, criterion, logger, epoch):
             output = model(spectrograms)
             output = F.log_softmax(output, dim=2)
             output = output.transpose(0, 1)
-            outputs = model(data)
             loss = criterion(output, labels, input_lengths, label_lengths)
             val_loss += loss.item() / len(val_loader)
 
