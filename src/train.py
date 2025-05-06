@@ -62,8 +62,6 @@ def train(config) -> None:
                     "train/loss": loss,
                     "train/lr": scheduler.get_last_lr()[0],
                 })
-            if batch_idx % 100 == 0:
-                model.log_melspectrogram(spectrograms, logger, epoch * len(train_loader) + batch_idx)
             optimizer.step()
             scheduler.step()
         val_wer = validate(model, device, config, criterion, logger, epoch)
