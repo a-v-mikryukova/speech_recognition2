@@ -2,10 +2,9 @@ import torch.nn.functional as F
 import wandb
 from torch import nn
 
-
 class CNNLayerNorm(nn.Module):
-    def __init__(self, n_feats) -> None:
-        super().__init__()
+    def __init__(self, n_feats):
+        super(CNNLayerNorm, self).__init__()
         self.layer_norm = nn.LayerNorm(n_feats)
 
     def forward(self, x):
@@ -16,8 +15,8 @@ class CNNLayerNorm(nn.Module):
 
 
 class ResidualCNN(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel, stride, dropout, n_feats) -> None:
-        super().__init__()
+    def __init__(self, in_channels, out_channels, kernel, stride, dropout, n_feats):
+        super(ResidualCNN, self).__init__()
 
         self.cnn1 = nn.Conv2d(in_channels, out_channels, kernel, stride, padding=kernel//2)
         self.cnn2 = nn.Conv2d(out_channels, out_channels, kernel, stride, padding=kernel//2)
@@ -41,8 +40,8 @@ class ResidualCNN(nn.Module):
 
 class BidirectionalLSTM(nn.Module):
 
-    def __init__(self, rnn_dim, hidden_size, dropout, batch_first) -> None:
-        super().__init__()
+    def __init__(self, rnn_dim, hidden_size, dropout, batch_first):
+        super(BidirectionalLSTM, self).__init__()
 
         self.BiLSTM = nn.LSTM(
             input_size=rnn_dim, hidden_size=hidden_size,
@@ -54,13 +53,14 @@ class BidirectionalLSTM(nn.Module):
         x = self.layer_norm(x)
         x = F.gelu(x)
         x, _ = self.BiLSTM(x)
-        return self.dropout(x)
+        x = self.dropout(x)
+        return x
 
-
+    
 class SpeechRecognitionModel(nn.Module):
 
-    def __init__(self, n_cnn_layers, n_rnn_layers, rnn_dim, n_class, n_feats, stride=2, dropout=0.1) -> None:
-        super().__init__()
+    def __init__(self, n_cnn_layers, n_rnn_layers, rnn_dim, n_class, n_feats, stride=2, dropout=0.1):
+        super(SpeechRecognitionModel, self).__init__()
         n_feats = n_feats//2
         self.cnn = nn.Conv2d(1, 32, 3, stride=stride, padding=3//2)  # cnn for extracting heirachal features
 
@@ -79,7 +79,7 @@ class SpeechRecognitionModel(nn.Module):
             nn.Linear(rnn_dim*2, rnn_dim),  # birnn returns rnn_dim*2
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(rnn_dim, n_class),
+            nn.Linear(rnn_dim, n_class)
         )
 
     def forward(self, x):
@@ -91,7 +91,8 @@ class SpeechRecognitionModel(nn.Module):
         x = x.transpose(1, 2) # (batch, time, feature)
         x = self.fully_connected(x)
         x = self.birnn_layers(x)
-        return self.classifier(x)
+        x = self.classifier(x)
+        return x
 
     def log_melspectrogram(self, x, logger, step) -> None:
         mel = x.cpu().numpy()[0][0]
