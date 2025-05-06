@@ -5,7 +5,7 @@ class WanDBLogger:
     def __init__(self, config) -> None:
         self.config = config
         self.run = wandb.init(
-            entity="asr2"
+            entity="asr2",
             project="asr",
             config=config,
         )
