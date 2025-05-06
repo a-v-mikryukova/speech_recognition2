@@ -63,7 +63,7 @@ def train(config) -> None:
                     "train/lr": scheduler.get_last_lr()[0],
                 })
             if batch_idx % 100 == 0:
-                model.log_melspectrogram(data, logger, epoch * len(train_loader) + batch_idx)
+                model.log_melspectrogram(spectrograms, logger, epoch * len(train_loader) + batch_idx)
             optimizer.step()
             scheduler.step()
         val_wer = validate(model, device, config, criterion, logger, epoch)
@@ -101,7 +101,7 @@ def validate(model, device, config, criterion, logger, epoch):
             loss = criterion(output, labels, input_lengths, label_lengths)
             val_loss += loss.item() / len(val_loader)
 
-            decoded_preds, decoded_targets = greedy_decode(output.transpose(0, 1), labels, label_lengths)
+            decoded_preds, decoded_targets = greedy_decode(output.transpose(0, 1), labels, label_lengths, text_transform)
 
             for j in range(len(decoded_preds)):
                 val_cer.append(cer(decoded_targets[j], decoded_preds[j]))
