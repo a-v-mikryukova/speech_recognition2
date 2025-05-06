@@ -26,7 +26,7 @@ def train(config) -> None:
     train_dataset = torch.utils.data.ConcatDataset(train_datasets)
 
     train_loader = DataLoader(
-        dataset=train_dataset,
+        train_dataset,
         batch_size=config["train"]["batch_size"],
         collate_fn=lambda x: collate_fn(x, text_transform, "train")
     )
@@ -82,7 +82,7 @@ def validate(model, device, config, criterion, logger, epoch):
     val_dataset = torch.utils.data.ConcatDataset(val_datasets)
 
     val_loader = DataLoader(
-        datаset=val_dataset,
+        val_dataset,
         batch_size=config["train"]["batch_size"],
         shuffle=False,
         collate_fn=lambda x: collate_fn(x, text_transform, "valid")
