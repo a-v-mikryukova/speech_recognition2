@@ -41,6 +41,6 @@ def greedy_decode(output, labels, label_lengths, text_transform, blank_label=28,
                 "predicted_text": decoded_text,
             })
         except Exception:
-            pass
+            print(f"Failed to log predictions: {e}")
 
     return decodes, targets
