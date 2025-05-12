@@ -28,9 +28,9 @@ def test(config) -> None:
     test_datasets = []
     for url in config["data"]["urls"]["test"]:
         dataset = LibriSpeechDataset(
-            root=config["data"]["data_dir"],
+            data_dir=config["data"]["data_dir"],
             url=url,
-            download=False,
+            download=True,
         )
         test_datasets.append(dataset)
 
