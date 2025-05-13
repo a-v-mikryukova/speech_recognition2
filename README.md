@@ -27,7 +27,7 @@ speech_recognition2/
 ├── pyproject.toml
 └── README.md
 ```
-## Инструкция запуска
+## Инструкция по запуску
 Клонируем репозиторий:
 ```shell
 !git clone https://github.com/a-v-mikryukova/speech_recognition2.git
