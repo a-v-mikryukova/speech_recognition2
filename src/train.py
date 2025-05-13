@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 from src.data import LibriSpeechDataset, TextTransform, collate_fn
 from src.models import SpeechRecognitionModel, greedy_decode
-from src.utils import WanDBLogger, cer, wer
+from src.utils import WanDBLogger, cer, wer, global_pruning, inference_speed
 
 SEED = 7
 torch.manual_seed(SEED)
@@ -24,11 +24,14 @@ def main(config):
     model = SpeechRecognitionModel(**config["model"]).to(device)
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=config["train"]["learning_rate"])
+    n_epochs = config["train"]["epochs"]
+    if config.pruning.enable:
+        n_epochs += config.pruning.fine_tune_epochs
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=config["train"]["learning_rate"],
         steps_per_epoch=int(len(train_loader)),
-        epochs=config["train"]["epochs"],
+        epochs=n_epochs,
         anneal_strategy='linear')
     criterion = torch.nn.CTCLoss(blank=28).to(device)
     best_wer = float('inf')
@@ -47,6 +50,26 @@ def main(config):
             best_wer = val_wer
             torch.save(model.state_dict(), f"{config['train']['save_dir']}/best_model.pth")
             logger.log_checkpoint(f"{config['train']['save_dir']}/best_model.pth")
+            
+    if config.pruning.enable:
+        global_pruning(model, config.pruning.rate)
+        
+        print(f"\nFine-tuning after pruning ({config.pruning.rate*100}% sparsity)")
+        val_loss, val_cer, val_wer = 0, 0, 0
+        for epoch in range(config.pruning.fine_tune_epochs):
+            train_loss = train_epoch(
+                model, device, train_loader, 
+                criterion, optimizer, scheduler, logger)
+        
+            val_loss, val_cer, val_wer = validate_epoch(model, device, val_loader, criterion, logger)
+
+        time_inf = inference_speed(model=model, test_loader=val_loader, dtype="None", device="cpu")
+        logger.log_metrics({
+            "inference_time": time_inf
+        })
+        torch.save(model.state_dict(), f"{config['train']['save_dir']}/pruned_model.pth")
+        logger.log_checkpoint(f"{config['train']['save_dir']}/pruned_model.pth")
+            
 
 
 def get_dataloaders(config):
